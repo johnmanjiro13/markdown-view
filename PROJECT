@@ -1,0 +1,6 @@
+domain: johnmanjiro13.github.io
+layout:
+- go.kubebuilder.io/v3
+projectName: markdown-view
+repo: github.com/johnmanjiro13/markdown-view
+version: "3"
