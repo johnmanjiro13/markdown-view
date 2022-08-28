@@ -17,11 +17,13 @@ limitations under the License.
 package controllers
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -73,6 +75,10 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
+	ns := &corev1.Namespace{}
+	ns.Name = "test"
+	err = k8sClient.Create(context.Background(), ns)
+	Expect(err).NotTo(HaveOccurred())
 }, 60)
 
 var _ = AfterSuite(func() {
