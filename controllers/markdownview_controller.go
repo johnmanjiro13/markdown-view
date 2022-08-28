@@ -71,6 +71,7 @@ func (r *MarkdownViewReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	var mdView viewv1.MarkdownView
 	err := r.Get(ctx, req.NamespacedName, &mdView)
 	if errors.IsNotFound(err) {
+		r.removeMetrics(mdView)
 		return ctrl.Result{}, nil
 	}
 	if err != nil {
@@ -319,6 +320,7 @@ func (r *MarkdownViewReconciler) updateStatus(ctx context.Context, mdView viewv1
 
 	if mdView.Status != status {
 		mdView.Status = status
+		r.setMetrics(mdView)
 		r.Recorder.Event(&mdView, corev1.EventTypeNormal, "Updated", fmt.Sprintf("MarkdownView(%s:%s) updated: %s", mdView.Namespace, mdView.Name, mdView.Status))
 		err = r.Status().Update(ctx, &mdView)
 		if err != nil {
@@ -330,6 +332,29 @@ func (r *MarkdownViewReconciler) updateStatus(ctx context.Context, mdView viewv1
 		return ctrl.Result{Requeue: true}, nil
 	}
 	return ctrl.Result{}, nil
+}
+
+func (r *MarkdownViewReconciler) setMetrics(mdView viewv1.MarkdownView) {
+	switch mdView.Status {
+	case viewv1.MarkdownViewNotReady:
+		NotReadyVec.WithLabelValues(mdView.Name, mdView.Namespace).Set(1)
+		AvailableVec.WithLabelValues(mdView.Name, mdView.Namespace).Set(0)
+		HealthyVec.WithLabelValues(mdView.Name, mdView.Namespace).Set(0)
+	case viewv1.MarkdownViewAvailable:
+		NotReadyVec.WithLabelValues(mdView.Name, mdView.Namespace).Set(0)
+		AvailableVec.WithLabelValues(mdView.Name, mdView.Namespace).Set(1)
+		HealthyVec.WithLabelValues(mdView.Name, mdView.Namespace).Set(0)
+	case viewv1.MarkdownViewHealthy:
+		NotReadyVec.WithLabelValues(mdView.Name, mdView.Namespace).Set(0)
+		AvailableVec.WithLabelValues(mdView.Name, mdView.Namespace).Set(0)
+		HealthyVec.WithLabelValues(mdView.Name, mdView.Namespace).Set(1)
+	}
+}
+
+func (r *MarkdownViewReconciler) removeMetrics(mdView viewv1.MarkdownView) {
+	NotReadyVec.DeleteLabelValues(mdView.Name, mdView.Namespace)
+	AvailableVec.DeleteLabelValues(mdView.Name, mdView.Namespace)
+	HealthyVec.DeleteLabelValues(mdView.Name, mdView.Namespace)
 }
 
 func controllerReference(mdView viewv1.MarkdownView, scheme *runtime.Scheme) (*metav1apply.OwnerReferenceApplyConfiguration, error) {
