@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 // Package v1 contains API Schema definitions for the view v1 API group
-//+kubebuilder:object:generate=true
-//+groupName=view.johnmanjiro13.github.io
+// +kubebuilder:object:generate=true
+// +groupName=view.johnmanjiro13.github.io
 package v1
 
 import (

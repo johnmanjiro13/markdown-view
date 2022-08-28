@@ -38,7 +38,7 @@ type MarkdownViewSpec struct {
 }
 
 // MarkdownViewStatus defines the observed state of MarkdownView
-//+kubebuilder:validation:Enum=NotReady;Available;Healthy
+// +kubebuilder:validation:Enum=NotReady;Available;Healthy
 type MarkdownViewStatus string
 
 const (
